@@ -1,14 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-  The widget's card in the dark appearance: the dark scheme's `surface` tone rather than pure black,
-  so it still reads as a card on the app's near-black canvas, with the dark scheme's hairline as its
-  border. See `prayer_widget_background_light` for why this is a separate resource.
+  The widget's card in the dark appearance: the dark scheme's surface tone rather than pure black, so
+  it still reads as a card on a dark wallpaper, with the dark scheme's hairline as its border. See
+  `prayer_widget_background_light` for why this is a separate resource and why its colours are
+  resolved through `values-v31` on Android 12+.
 -->
 <shape xmlns:android="http://schemas.android.com/apk/res/android"
     android:shape="rectangle">
-    <solid android:color="#FF16221E" />
+    <solid android:color="@color/prayer_widget_card_dark" />
     <corners android:radius="20dp" />
     <stroke
         android:width="1dp"
-        android:color="#23322C" />
+        android:color="@color/prayer_widget_outline_dark" />
 </shape>

@@ -169,7 +169,8 @@ class PrayerWidgetUpdater(
 
         // The card's appearance is chosen here, not in the layout: `setImageViewResource` is a
         // first-class RemoteViews API, so the light and dark cards need no resource qualifier and no
-        // reflective call. A preset other than the default re-tones the text below, not the card.
+        // reflective call. Its fill is the wallpaper's neutral tone on Android 12+ and the app's own
+        // card colour before that; the text colours below are always bound from the active scheme.
         views.setImageViewResource(R.id.widget_background, palette.background)
 
         views.setTextViewText(R.id.widget_prayer_name, presentation.title)
@@ -178,14 +179,15 @@ class PrayerWidgetUpdater(
         views.setTextViewText(R.id.widget_status, presentation.status)
         views.setTextColor(R.id.widget_status, palette.status)
 
-        views.setTextViewText(R.id.widget_remaining_label, presentation.countdownLabel)
-        views.setTextColor(R.id.widget_remaining_label, palette.label)
-
         views.setTextColor(R.id.widget_countdown, palette.countdown)
 
         if (wide) {
-            // The compact layout has no room for the boundary line and does not declare the view at
-            // all, so the action is issued only for the layout that has it.
+            // The compact layout does not declare the caption or the boundary line at all — the
+            // state line already says what the number means, and at 2x2 the countdown needs the
+            // room more than the caption does — so their actions are issued only for the layout
+            // that has the views.
+            views.setTextViewText(R.id.widget_remaining_label, presentation.countdownLabel)
+            views.setTextColor(R.id.widget_remaining_label, palette.label)
             views.setTextViewText(R.id.widget_boundary, presentation.detail.orEmpty())
             views.setTextColor(R.id.widget_boundary, palette.boundary)
             views.setViewVisibility(
@@ -201,14 +203,14 @@ class PrayerWidgetUpdater(
             views.setChronometerCountDown(R.id.widget_countdown, true)
             views.setChronometer(R.id.widget_countdown, SystemClock.elapsedRealtime(), null, false)
             views.setViewVisibility(R.id.widget_countdown, View.GONE)
-            views.setViewVisibility(R.id.widget_remaining_label, View.GONE)
+            if (wide) views.setViewVisibility(R.id.widget_remaining_label, View.GONE)
         } else {
             // The platform's own countdown: it ticks in the launcher's process, so Salah is not
             // woken once a second to redraw a number.
             views.setChronometerCountDown(R.id.widget_countdown, true)
             views.setChronometer(R.id.widget_countdown, base, null, true)
             views.setViewVisibility(R.id.widget_countdown, View.VISIBLE)
-            views.setViewVisibility(R.id.widget_remaining_label, View.VISIBLE)
+            if (wide) views.setViewVisibility(R.id.widget_remaining_label, View.VISIBLE)
         }
 
         views.setContentDescription(R.id.widget_root, presentation.contentDescription)
@@ -282,7 +284,7 @@ class PrayerWidgetUpdater(
         val dark = isDarkTheme(mode, nightMode)
         return Appearance(
             resources = resourcesFor(language),
-            palette = prayerWidgetPalette(preset, dark),
+            palette = prayerWidgetPalette(context, preset, dark),
         )
     }
 

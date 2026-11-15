@@ -1,14 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-  The widget's default colours in the dark appearance, matching the dark scheme's `onSurface`,
-  `onSurfaceVariant` and `secondary` roles.
+  The widget's default colours in the dark appearance, matching the dark scheme's `onSurface` and
+  `onSurfaceVariant` roles.
 
   These only decide how the initial layout and the picker preview look before the first bind; at bind
-  time `PrayerWidgetUpdater` sets the exact colours of the selected preset, which is why an explicit
-  Salah dark theme on a light phone still produces a dark widget.
+  time `PrayerWidgetUpdater` sets the exact colours of the active scheme — the wallpaper's dynamic
+  scheme on Android 12+, the selected preset before that — which is why an explicit Salah dark theme
+  on a light phone still produces a dark widget.
 -->
 <resources>
     <color name="prayer_widget_text_primary">#E1E5E2</color>
     <color name="prayer_widget_text_secondary">#A1AEA7</color>
-    <color name="prayer_widget_accent">#C49A45</color>
 </resources>

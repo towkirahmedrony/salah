@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  The widget's card in Material You.
+
+  Android 12's tonal palettes (`system_neutral1`, `system_neutral2`) are generated from the
+  wallpaper's seed colour, so these references make the card and its hairline follow the user's
+  system colours instead of the fixed brand card. The tone numbers are Android's inverted indexing:
+  `system_neutral1_10` is Material's neutral tone 99 (a light, faintly tinted surface) and
+  `system_neutral1_900` is tone 10 (the dark surface), which is why the light card names the higher
+  index and the dark card the lower one.
+
+  The two card drawables stay separate resources and are still chosen at bind time from the user's
+  theme mode; only their fill and stroke colours change with the platform.
+-->
+<resources>
+    <color name="prayer_widget_card_light">@android:color/system_neutral1_10</color>
+    <color name="prayer_widget_card_dark">@android:color/system_neutral1_900</color>
+    <color name="prayer_widget_outline_light">@android:color/system_neutral2_200</color>
+    <color name="prayer_widget_outline_dark">@android:color/system_neutral2_700</color>
+</resources>

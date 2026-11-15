@@ -3,6 +3,17 @@
   The compact home-screen widget: the prayer whose period is open (or the one that opens next),
   what that means, and a live countdown.
 
+  **One group, centred in the cell.** The content is a single `wrap_content` column with no weights,
+  no spacer views and no `match_parent` height, so the name, the state line and the countdown stay
+  together as one block. An app widget is given the whole cell, and any child that stretches inside
+  it is what previously turned this reading into a card with a large hole between its top and bottom
+  lines. Padding is the only space around the group, so resizing the cell taller only moves the block
+  as a unit instead of pulling its lines apart.
+
+  The "TIME LEFT" caption is deliberately absent here: at 2x2 the state line ("Time is running" or
+  "Next prayer") already says what the number means, and repeating it as a third small line would
+  cost the countdown a size it needs. The wide layout, which has the room, keeps the caption.
+
   **Why a FrameLayout with an ImageView under the content.** The card's rounded, bordered background
   is a drawable, and the light and dark variants are chosen at bind time. `setImageViewResource` is a
   first-class `RemoteViews` API, so the appearance is selected without any of the reflective calls
@@ -13,8 +24,7 @@
   the launcher's process, so a @string/ reference here would be resolved with the launcher's
   configuration rather than with the language the user chose inside Salah.
 
-  Only view types RemoteViews supports are used, and the gap before the countdown is a weighted
-  LinearLayout rather than a Space.
+  Only view types RemoteViews supports are used.
 -->
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+id/widget_root"
@@ -32,24 +42,19 @@
 
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="start|center_vertical"
         android:importantForAccessibility="noHideDescendants"
         android:orientation="vertical"
-        android:padding="12dp">
-
-        <ImageView
-            android:id="@+id/widget_accent"
-            android:layout_width="20dp"
-            android:layout_height="3dp"
-            android:contentDescription="@null"
-            android:importantForAccessibility="no"
-            android:src="@drawable/prayer_widget_accent_bar" />
+        android:paddingStart="14dp"
+        android:paddingTop="12dp"
+        android:paddingEnd="14dp"
+        android:paddingBottom="12dp">
 
         <TextView
             android:id="@+id/widget_prayer_name"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="6dp"
             android:ellipsize="end"
             android:fontFamily="sans-serif-medium"
             android:maxLines="1"
@@ -68,41 +73,19 @@
             android:textSize="10sp" />
 
         <!--
-          Anchored to the bottom edge, so the countdown stays where the eye expects it however long
-          the prayer's name and the state line turn out to be.
+          The countdown is a Chronometer, not a value this app redraws: the platform advances it
+          in the launcher, so a once-a-second timer never wakes Salah. PrayerWidgetUpdater hands
+          it the instant the period ends and enables count-down mode.
         -->
-        <LinearLayout
+        <Chronometer
+            android:id="@+id/widget_countdown"
             android:layout_width="match_parent"
-            android:layout_height="0dp"
-            android:layout_weight="1"
-            android:gravity="bottom"
-            android:orientation="vertical">
-
-            <TextView
-                android:id="@+id/widget_remaining_label"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:ellipsize="end"
-                android:letterSpacing="0.06"
-                android:maxLines="1"
-                android:textColor="@color/prayer_widget_text_secondary"
-                android:textSize="9sp" />
-
-            <!--
-              The countdown is a Chronometer, not a value this app redraws: the platform advances it
-              in the launcher, so a once-a-second timer never wakes Salah. PrayerWidgetUpdater hands
-              it the instant the period ends and enables count-down mode.
-            -->
-            <Chronometer
-                android:id="@+id/widget_countdown"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="1dp"
-                android:fontFamily="sans-serif-medium"
-                android:maxLines="1"
-                android:textColor="@color/prayer_widget_text_primary"
-                android:textSize="21sp"
-                android:textStyle="bold" />
-        </LinearLayout>
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:fontFamily="sans-serif-medium"
+            android:maxLines="1"
+            android:textColor="@color/prayer_widget_text_primary"
+            android:textSize="22sp"
+            android:textStyle="bold" />
     </LinearLayout>
 </FrameLayout>

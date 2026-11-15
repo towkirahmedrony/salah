@@ -8,14 +8,19 @@
   `PrayerWidgetRefreshScheduler` registers, and every lifecycle event that matters (added, resized,
   removed, boot, app update) is delivered to the provider by the system.
 
+  The declared height is only as tall as the compact composition needs: three lines of text and
+  their padding, centred in the cell. It sits below the default two-cell height so a launcher that
+  sizes from `minHeight` still lands on two rows, and a cell resized to that minimum is full of
+  content instead of mostly padding.
+
   `targetCellWidth`/`targetCellHeight`/`previewLayout`/`description` are API 31 additions; older
   platforms ignore them and fall back to `minWidth`/`minHeight` and the app icon.
 -->
 <appwidget-provider xmlns:android="http://schemas.android.com/apk/res/android"
     android:description="@string/widget_description"
     android:initialLayout="@layout/prayer_widget_preview"
-    android:minHeight="110dp"
-    android:minResizeHeight="110dp"
+    android:minHeight="100dp"
+    android:minResizeHeight="100dp"
     android:minResizeWidth="110dp"
     android:minWidth="110dp"
     android:previewLayout="@layout/prayer_widget_preview"

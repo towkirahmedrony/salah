@@ -1,12 +1,18 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-  The wide home-screen widget: the same reading as the compact layout, plus the boundary the
-  countdown is counting to ("Maghrib at 5:42 PM"). The two columns keep the prayer's name and the
-  countdown at opposite ends, so the countdown stays the thing the eye lands on.
+  The wide home-screen widget: the same reading as the compact layout, plus the caption above the
+  countdown and the boundary it is counting to ("Maghrib at 5:42 PM").
 
-  Both layouts share every view id except `widget_boundary`, which only this one declares; the
-  updater addresses that view only when this layout is in use. The background layer works exactly as
-  it does in `prayer_widget_small` — see that file for why it is an ImageView.
+  Both columns are `wrap_content` and the row centres them vertically, so the two sides read as one
+  band across the middle of the cell. Neither column stretches to the cell's height: the countdown
+  sits directly under its caption, and the caption sits directly under the boundary line, rather than
+  being pushed to opposite edges of a tall card.
+
+  The compact layout omits the caption and the boundary to stay within a 2x2 cell; this one keeps
+  both because a wide cell has the room. Every other view id is shared, so the updater addresses the
+  same views in both layouts (it issues boundary actions only for this one).
+  The background layer works exactly as it does in `prayer_widget_small` — see that file for why it
+  is an ImageView.
 -->
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+id/widget_root"
@@ -24,84 +30,80 @@
 
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="start|center_vertical"
         android:baselineAligned="false"
         android:importantForAccessibility="noHideDescendants"
         android:orientation="horizontal"
-        android:padding="16dp">
+        android:paddingStart="16dp"
+        android:paddingTop="12dp"
+        android:paddingEnd="16dp"
+        android:paddingBottom="12dp">
 
         <LinearLayout
             android:layout_width="0dp"
-            android:layout_height="match_parent"
+            android:layout_height="wrap_content"
             android:layout_weight="1"
             android:orientation="vertical">
-
-            <ImageView
-                android:id="@+id/widget_accent"
-                android:layout_width="24dp"
-                android:layout_height="3dp"
-                android:contentDescription="@null"
-                android:importantForAccessibility="no"
-                android:src="@drawable/prayer_widget_accent_bar" />
 
             <TextView
                 android:id="@+id/widget_prayer_name"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="10dp"
                 android:ellipsize="end"
                 android:fontFamily="sans-serif-medium"
                 android:maxLines="1"
                 android:textColor="@color/prayer_widget_text_primary"
-                android:textSize="25sp"
+                android:textSize="24sp"
                 android:textStyle="bold" />
 
             <TextView
                 android:id="@+id/widget_status"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="2dp"
+                android:layout_marginTop="1dp"
                 android:ellipsize="end"
                 android:maxLines="2"
                 android:textColor="@color/prayer_widget_text_secondary"
-                android:textSize="12sp" />
+                android:textSize="11sp" />
 
             <TextView
                 android:id="@+id/widget_boundary"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="6dp"
+                android:layout_marginTop="3dp"
                 android:ellipsize="end"
                 android:maxLines="1"
                 android:textColor="@color/prayer_widget_text_secondary"
-                android:textSize="11sp" />
+                android:textSize="10sp" />
         </LinearLayout>
 
         <LinearLayout
             android:layout_width="wrap_content"
-            android:layout_height="match_parent"
+            android:layout_height="wrap_content"
             android:layout_marginStart="12dp"
-            android:gravity="end|center_vertical"
+            android:gravity="end"
             android:orientation="vertical">
 
             <TextView
                 android:id="@+id/widget_remaining_label"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:letterSpacing="0.06"
+                android:ellipsize="end"
+                android:letterSpacing="0.08"
                 android:maxLines="1"
                 android:textColor="@color/prayer_widget_text_secondary"
-                android:textSize="10sp" />
+                android:textSize="9sp" />
 
             <Chronometer
                 android:id="@+id/widget_countdown"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="2dp"
+                android:layout_marginTop="1dp"
                 android:fontFamily="sans-serif-medium"
                 android:maxLines="1"
                 android:textColor="@color/prayer_widget_text_primary"
-                android:textSize="30sp"
+                android:textSize="28sp"
                 android:textStyle="bold" />
         </LinearLayout>
     </LinearLayout>

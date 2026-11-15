@@ -13,12 +13,20 @@
     <!--
       Home-screen widget defaults.
 
-      Every one of these is replaced at bind time by the colour the selected theme preset resolves
-      to (see `PrayerWidgetUpdater`); they exist so the widget's initial layout and its picker
-      preview render in the brand palette instead of black-on-transparent, and so a launcher that
-      never rebinds a freshly placed widget still shows something legible.
+      Every text colour here is replaced at bind time by the colour the active scheme resolves to
+      (see `PrayerWidgetUpdater`); they exist so the widget's initial layout and its picker preview
+      render in the brand palette instead of black-on-transparent, and so a launcher that never
+      rebinds a freshly placed widget still shows something legible.
+
+      The card and hairline colours are read directly by the two card drawables. On Android 12+,
+      `values-v31` replaces them with the wallpaper's neutral tones; before that they stay the
+      app's own card colours.
     -->
     <color name="prayer_widget_text_primary">#14241D</color>
     <color name="prayer_widget_text_secondary">#5E6D66</color>
-    <color name="prayer_widget_accent">#C49A45</color>
+
+    <color name="prayer_widget_card_light">#FFFFFFFF</color>
+    <color name="prayer_widget_card_dark">#FF16221E</color>
+    <color name="prayer_widget_outline_light">#FFE2E0D8</color>
+    <color name="prayer_widget_outline_dark">#FF23322C</color>
 </resources>
