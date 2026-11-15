@@ -1,25 +1,21 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-  The compact home-screen widget, built as a card with a clear hierarchy:
+  The compact home-screen widget: one left-aligned group, centred vertically in the card.
 
-    - top:    the prayer's name (large, shrinks to fit) and a one-line state under it
-    - bottom: the "TIME LEFT" caption, the live countdown, and the boundary line
+    name (large) → state → gap → "TIME LEFT" caption → live countdown → boundary line
 
-  The empty weighted LinearLayout in the middle pushes the two groups to the card's top and bottom,
-  so a taller cell spreads the content across the card instead of leaving a hole around a tiny
-  centred block. It collapses to nothing in a small cell.
+  There is no stretching spacer: the lines stay together as one block with fixed gaps, so a taller
+  cell only moves the block, it never pulls the lines apart. The name and the countdown shrink to
+  fit the width, so they are as large as the cell allows.
 
   The caption and the boundary line are optional: PrayerWidgetUpdater hides them when the widget is
-  not tall enough to hold them without crowding the name and the countdown.
+  not tall enough to hold them.
 
   The card itself is the ImageView underneath: a bitmap painted at bind time from the active theme
   (see PrayerWidgetCard); the drawable here is only the pre-bind default.
 
-  Every text value and colour is set at bind time by PrayerWidgetUpdater — a RemoteViews layout is
-  inflated in the launcher's process, so a @string/ reference here would be resolved with the
-  launcher's configuration rather than with the language the user chose inside Salah.
-
-  Only view types RemoteViews supports are used.
+  Every text value and colour is set at bind time by PrayerWidgetUpdater, because a RemoteViews
+  layout is inflated in the launcher's process and would resolve @string/ with the launcher's locale.
 -->
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+id/widget_root"
@@ -38,19 +34,20 @@
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+        android:gravity="center_vertical"
         android:importantForAccessibility="noHideDescendants"
         android:orientation="vertical"
         android:paddingStart="16dp"
-        android:paddingTop="14dp"
-        android:paddingEnd="16dp"
-        android:paddingBottom="14dp">
+        android:paddingTop="12dp"
+        android:paddingEnd="14dp"
+        android:paddingBottom="12dp">
 
         <TextView
             android:id="@+id/widget_prayer_name"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:autoSizeMaxTextSize="28sp"
-            android:autoSizeMinTextSize="16sp"
+            android:autoSizeMaxTextSize="34sp"
+            android:autoSizeMinTextSize="18sp"
             android:autoSizeStepGranularity="1sp"
             android:autoSizeTextType="uniform"
             android:ellipsize="end"
@@ -63,41 +60,30 @@
             android:id="@+id/widget_status"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="1dp"
+            android:layout_marginTop="2dp"
             android:ellipsize="end"
-            android:maxLines="2"
+            android:maxLines="3"
             android:textColor="@color/prayer_widget_preview_text_secondary"
-            android:textSize="12sp" />
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="0dp"
-            android:layout_weight="1"
-            android:orientation="vertical" />
+            android:textSize="14sp" />
 
         <TextView
             android:id="@+id/widget_remaining_label"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
             android:ellipsize="end"
             android:letterSpacing="0.1"
             android:maxLines="1"
             android:textColor="@color/prayer_widget_preview_text_secondary"
-            android:textSize="10sp" />
+            android:textSize="11sp" />
 
-        <!--
-          The countdown is a Chronometer, not a value this app redraws: the platform advances it
-          in the launcher, so a once-a-second timer never wakes Salah. PrayerWidgetUpdater hands
-          it the instant the period ends and enables count-down mode. Tabular figures keep the
-          digits from shifting as they change.
-        -->
         <Chronometer
             android:id="@+id/widget_countdown"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="1dp"
-            android:autoSizeMaxTextSize="32sp"
-            android:autoSizeMinTextSize="18sp"
+            android:layout_marginTop="2dp"
+            android:autoSizeMaxTextSize="40sp"
+            android:autoSizeMinTextSize="20sp"
             android:autoSizeStepGranularity="1sp"
             android:autoSizeTextType="uniform"
             android:fontFamily="sans-serif-medium"
@@ -113,8 +99,8 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="6dp"
             android:ellipsize="end"
-            android:maxLines="1"
+            android:maxLines="2"
             android:textColor="@color/prayer_widget_preview_text_secondary"
-            android:textSize="12sp" />
+            android:textSize="13sp" />
     </LinearLayout>
 </FrameLayout>
