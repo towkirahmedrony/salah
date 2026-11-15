@@ -57,6 +57,10 @@ import java.util.Locale
  * arrives as a `PrayerScheduleState` value; a widget with no location, or with a timetable the engine
  * could not produce, renders *that* rather than a stale or invented time.
  *
+ * **Size-aware.** The card bitmap is painted for the widget's real size, and the optional lines (the
+ * "TIME LEFT" caption and the boundary line) are shown only when the widget is tall enough to hold
+ * them without crowding the name and the countdown.
+ *
  * Calls are serialised on [renderMutex]: a resize and a boundary alarm can arrive together, and the
  * last run must win rather than two `updateAppWidget` calls interleaving.
  */
@@ -162,16 +166,23 @@ class PrayerWidgetUpdater(
     }
 
     private fun viewsFor(id: Int, presentation: Presentation, appearance: Appearance): RemoteViews {
-        val wide = isWide(id)
+        val size = sizeOf(id)
+        val wide = size.widthDp >= WIDE_MIN_WIDTH_DP
         val layout = if (wide) R.layout.prayer_widget_wide else R.layout.prayer_widget_small
         val views = RemoteViews(context.packageName, layout)
         val palette = appearance.palette
 
-        // The card's appearance is chosen here, not in the layout: `setImageViewResource` is a
-        // first-class RemoteViews API, so the light and dark cards need no resource qualifier and no
-        // reflective call. Its fill is the wallpaper's neutral tone on Android 12+ and the app's own
-        // card colour before that; the text colours below are always bound from the active scheme.
-        views.setImageViewResource(R.id.widget_background, palette.background)
+        // The card is painted for this widget's own size from the active scheme's colours; see
+        // `PrayerWidgetCard`. `setImageViewBitmap` is a first-class RemoteViews API.
+        views.setImageViewBitmap(
+            R.id.widget_background,
+            PrayerWidgetCard.render(
+                widthDp = size.widthDp,
+                heightDp = size.heightDp,
+                density = context.resources.displayMetrics.density,
+                palette = palette,
+            ),
+        )
 
         views.setTextViewText(R.id.widget_prayer_name, presentation.title)
         views.setTextColor(R.id.widget_prayer_name, palette.prayerName)
@@ -181,20 +192,20 @@ class PrayerWidgetUpdater(
 
         views.setTextColor(R.id.widget_countdown, palette.countdown)
 
-        if (wide) {
-            // The compact layout does not declare the caption or the boundary line at all — the
-            // state line already says what the number means, and at 2x2 the countdown needs the
-            // room more than the caption does — so their actions are issued only for the layout
-            // that has the views.
-            views.setTextViewText(R.id.widget_remaining_label, presentation.countdownLabel)
-            views.setTextColor(R.id.widget_remaining_label, palette.label)
-            views.setTextViewText(R.id.widget_boundary, presentation.detail.orEmpty())
-            views.setTextColor(R.id.widget_boundary, palette.boundary)
-            views.setViewVisibility(
-                R.id.widget_boundary,
-                if (presentation.detail == null) View.GONE else View.VISIBLE,
-            )
-        }
+        // The caption and the boundary line are optional: a compact cell keeps just the name, the
+        // state and the countdown so nothing is clipped, a taller cell adds the caption, and a
+        // tall (or wide) one adds the boundary as well.
+        val hasCountdown = presentation.countdownBase != null
+        val showCaption = hasCountdown && (wide || size.heightDp >= CAPTION_MIN_HEIGHT_DP)
+        val showBoundary = presentation.detail != null && (wide || size.heightDp >= BOUNDARY_MIN_HEIGHT_DP)
+
+        views.setTextViewText(R.id.widget_remaining_label, presentation.countdownLabel)
+        views.setTextColor(R.id.widget_remaining_label, palette.label)
+        views.setViewVisibility(R.id.widget_remaining_label, if (showCaption) View.VISIBLE else View.GONE)
+
+        views.setTextViewText(R.id.widget_boundary, presentation.detail.orEmpty())
+        views.setTextColor(R.id.widget_boundary, palette.boundary)
+        views.setViewVisibility(R.id.widget_boundary, if (showBoundary) View.VISIBLE else View.GONE)
 
         val base = presentation.countdownBase
         if (base == null) {
@@ -203,14 +214,12 @@ class PrayerWidgetUpdater(
             views.setChronometerCountDown(R.id.widget_countdown, true)
             views.setChronometer(R.id.widget_countdown, SystemClock.elapsedRealtime(), null, false)
             views.setViewVisibility(R.id.widget_countdown, View.GONE)
-            if (wide) views.setViewVisibility(R.id.widget_remaining_label, View.GONE)
         } else {
             // The platform's own countdown: it ticks in the launcher's process, so Salah is not
             // woken once a second to redraw a number.
             views.setChronometerCountDown(R.id.widget_countdown, true)
             views.setChronometer(R.id.widget_countdown, base, null, true)
             views.setViewVisibility(R.id.widget_countdown, View.VISIBLE)
-            if (wide) views.setViewVisibility(R.id.widget_remaining_label, View.VISIBLE)
         }
 
         views.setContentDescription(R.id.widget_root, presentation.contentDescription)
@@ -218,19 +227,43 @@ class PrayerWidgetUpdater(
         return views
     }
 
-    /** Whether the instance is wide enough for the two-column layout. */
-    private fun isWide(id: Int): Boolean {
-        val manager = widgetManager ?: return false
-        val fromOptions = manager.getAppWidgetOptions(id)
-            .getInt(AppWidgetManager.OPTION_APPWIDGET_MIN_WIDTH)
-        // A launcher that never reported options still has a declared minimum in the provider info,
-        // which is the honest fallback rather than assuming small.
-        val widthDp = if (fromOptions > 0) {
-            fromOptions
-        } else {
-            manager.getAppWidgetInfo(id)?.minWidth ?: 0
+    /**
+     * The widget instance's real size in dp.
+     *
+     * Launchers report the size per orientation: portrait is `MIN_WIDTH` by `MAX_HEIGHT`, landscape
+     * is `MAX_WIDTH` by `MIN_HEIGHT`. A launcher that reported nothing falls back to the provider's
+     * declared minimum, which `AppWidgetProviderInfo` states in pixels and so is converted here.
+     */
+    private fun sizeOf(id: Int): WidgetSize {
+        val manager = widgetManager
+        val options = manager?.getAppWidgetOptions(id)
+        val portrait = context.resources.configuration.orientation != Configuration.ORIENTATION_LANDSCAPE
+
+        var width = options?.getInt(
+            if (portrait) {
+                AppWidgetManager.OPTION_APPWIDGET_MIN_WIDTH
+            } else {
+                AppWidgetManager.OPTION_APPWIDGET_MAX_WIDTH
+            },
+        ) ?: 0
+        var height = options?.getInt(
+            if (portrait) {
+                AppWidgetManager.OPTION_APPWIDGET_MAX_HEIGHT
+            } else {
+                AppWidgetManager.OPTION_APPWIDGET_MIN_HEIGHT
+            },
+        ) ?: 0
+
+        if (width <= 0 || height <= 0) {
+            val info = manager?.getAppWidgetInfo(id)
+            val density = context.resources.displayMetrics.density
+            if (width <= 0) width = ((info?.minWidth ?: 0) / density).toInt()
+            if (height <= 0) height = ((info?.minHeight ?: 0) / density).toInt()
         }
-        return widthDp >= WIDE_MIN_WIDTH_DP
+        return WidgetSize(
+            widthDp = if (width > 0) width else DEFAULT_WIDTH_DP,
+            heightDp = if (height > 0) height else DEFAULT_HEIGHT_DP,
+        )
     }
 
     /** Opens Salah's prayer timetable, which shows the same period and the full day's times. */
@@ -411,6 +444,9 @@ class PrayerWidgetUpdater(
         val palette: PrayerWidgetPalette,
     )
 
+    /** One widget instance's size, in dp. */
+    private data class WidgetSize(val widthDp: Int, val heightDp: Int)
+
     /**
      * One widget's already-resolved text.
      *
@@ -436,6 +472,15 @@ class PrayerWidgetUpdater(
 
         /** Width, in dp, at which the widget switches to its two-column layout. */
         const val WIDE_MIN_WIDTH_DP = 250
+
+        /** Height, in dp, from which the compact layout also shows the "TIME LEFT" caption. */
+        const val CAPTION_MIN_HEIGHT_DP = 140
+
+        /** Height, in dp, from which the compact layout also shows the boundary line. */
+        const val BOUNDARY_MIN_HEIGHT_DP = 170
+
+        const val DEFAULT_WIDTH_DP = 110
+        const val DEFAULT_HEIGHT_DP = 110
 
         const val BOUNDARY_SLACK_SECONDS = 2L
 

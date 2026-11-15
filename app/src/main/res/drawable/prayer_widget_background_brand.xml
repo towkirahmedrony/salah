@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  The widget's static card: the brand's deep emerald gradient with a fine light hairline. Used only
+  where no bind has happened yet — the widget picker preview and the initial layout. Once the widget
+  is bound, PrayerWidgetUpdater replaces it with a card painted from the active theme.
+-->
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="rectangle">
+    <gradient
+        android:angle="315"
+        android:endColor="@color/prayer_widget_brand_end"
+        android:startColor="@color/prayer_widget_brand_start" />
+    <corners android:radius="28dp" />
+    <stroke
+        android:width="1dp"
+        android:color="@color/prayer_widget_brand_outline" />
+</shape>

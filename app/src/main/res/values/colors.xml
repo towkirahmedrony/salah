@@ -13,15 +13,19 @@
     <!--
       Home-screen widget defaults.
 
-      Every text colour here is replaced at bind time by the colour the active scheme resolves to
-      (see `PrayerWidgetUpdater`); they exist so the widget's initial layout and its picker preview
-      render in the brand palette instead of black-on-transparent, and so a launcher that never
+      Every text colour and the card itself are replaced at bind time by the active scheme (see
+      `PrayerWidgetUpdater` and `PrayerWidgetCard`). The `prayer_widget_brand_*` and
+      `prayer_widget_preview_*` colours exist so the widget picker preview and the initial layout
+      render as the brand's emerald card with ivory and gold text, and so a launcher that never
       rebinds a freshly placed widget still shows something legible.
-
-      The card and hairline colours are read directly by the two card drawables. On Android 12+,
-      `values-v31` replaces them with the wallpaper's neutral tones; before that they stay the
-      app's own card colours.
     -->
+    <color name="prayer_widget_brand_start">#0C4D3B</color>
+    <color name="prayer_widget_brand_end">#052A20</color>
+    <color name="prayer_widget_brand_outline">#26FFFFFF</color>
+    <color name="prayer_widget_preview_text_primary">#F6F1E4</color>
+    <color name="prayer_widget_preview_text_secondary">#BFCEC5</color>
+    <color name="prayer_widget_preview_text_accent">#E6C679</color>
+
     <color name="prayer_widget_text_primary">#14241D</color>
     <color name="prayer_widget_text_secondary">#5E6D66</color>
 

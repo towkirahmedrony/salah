@@ -1,13 +1,14 @@
 package io.github.towkirahmedrony.salah.widget
 
 import android.content.Context
+import android.graphics.Color
 import android.os.Build
 import androidx.annotation.ColorInt
-import androidx.annotation.DrawableRes
+import androidx.compose.material3.ColorScheme
 import androidx.compose.material3.dynamicDarkColorScheme
 import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.ui.graphics.toArgb
-import io.github.towkirahmedrony.salah.R
+import androidx.core.graphics.ColorUtils
 import io.github.towkirahmedrony.salah.core.designsystem.theme.themeColorScheme
 import io.github.towkirahmedrony.salah.core.model.ThemeMode
 import io.github.towkirahmedrony.salah.core.model.ThemePreset
@@ -16,23 +17,23 @@ import io.github.towkirahmedrony.salah.core.model.ThemePreset
  * The colours one widget instance is drawn with.
  *
  * **Material You first, the app's palette otherwise.** On Android 12 and later [prayerWidgetPalette]
- * resolves `dynamicLightColorScheme`/`dynamicDarkColorScheme` — the wallpaper's own tonal palettes —
- * so the card, its text and its accent take the same colours as the rest of the system and re-tone
- * themselves when the wallpaper or the system accent changes. Below Android 12, and on devices without
- * Material You, it falls back to `themeColorScheme`, the function `SalahTheme` composes every screen
- * from, so the widget still matches the selected preset exactly rather than drifting from it.
+ * resolves `dynamicLightColorScheme`/`dynamicDarkColorScheme`; below that, or without Material You,
+ * it uses `themeColorScheme`, the function `SalahTheme` composes every screen from, so the widget
+ * always matches the selected preset.
  *
- * **What a `RemoteViews` background can and cannot be.** A `RemoteViews` cannot be handed a `Drawable`
- * and a shape's fill cannot be swapped at runtime, so the rounded card stays two static drawables —
- * light and dark, selected with `setImageViewResource`. Their fill and hairline are colour resources
- * that `values-v31` replaces with the wallpaper's neutral tones, which is how the card itself becomes
- * dynamic while the shape stays a resource. Every text colour is applied through `setTextColor`, and
- * the countdown carries the scheme's accent, so the widget re-tones even when the card's shape is
- * fixed.
+ * **A card, not a flat tile.** A `RemoteViews` cannot change a shape's fill, so the card is a bitmap
+ * painted at bind time by [PrayerWidgetCard] from [cardStart], [cardEnd], [cardGlow] and
+ * [cardStroke]. Because the bitmap is drawn from the active scheme, the gradient follows the
+ * wallpaper or the chosen preset exactly like the text does.
+ *
+ * - Light appearance: a deep gradient of the scheme's `primary` with `onPrimary` text.
+ * - Dark appearance: a dark surface tinted with `primary`, with the countdown in the accent colour.
  */
 data class PrayerWidgetPalette(
-    /** The rounded card drawable the widget's background layer is given. */
-    @param:DrawableRes val background: Int,
+    @param:ColorInt val cardStart: Int,
+    @param:ColorInt val cardEnd: Int,
+    @param:ColorInt val cardGlow: Int,
+    @param:ColorInt val cardStroke: Int,
     @param:ColorInt val prayerName: Int,
     @param:ColorInt val status: Int,
     @param:ColorInt val label: Int,
@@ -69,20 +70,38 @@ fun prayerWidgetPalette(
     } else {
         themeColorScheme(preset, dark)
     }
+    return if (dark) darkPalette(scheme) else lightPalette(scheme)
+}
+
+private fun lightPalette(scheme: ColorScheme): PrayerWidgetPalette {
+    val primary = scheme.primary.toArgb()
+    val onPrimary = scheme.onPrimary.toArgb()
     return PrayerWidgetPalette(
-        background = if (dark) {
-            R.drawable.prayer_widget_background_dark
-        } else {
-            R.drawable.prayer_widget_background_light
-        },
+        cardStart = ColorUtils.blendARGB(primary, Color.WHITE, 0.06f),
+        cardEnd = ColorUtils.blendARGB(primary, Color.BLACK, 0.38f),
+        cardGlow = ColorUtils.setAlphaComponent(Color.WHITE, 0x38),
+        cardStroke = ColorUtils.setAlphaComponent(onPrimary, 0x30),
+        prayerName = onPrimary,
+        status = ColorUtils.setAlphaComponent(onPrimary, 0xE0),
+        label = ColorUtils.setAlphaComponent(onPrimary, 0xC8),
+        countdown = onPrimary,
+        boundary = ColorUtils.setAlphaComponent(onPrimary, 0xE0),
+    )
+}
+
+private fun darkPalette(scheme: ColorScheme): PrayerWidgetPalette {
+    val surface = scheme.surface.toArgb()
+    val primary = scheme.primary.toArgb()
+    return PrayerWidgetPalette(
+        cardStart = ColorUtils.blendARGB(surface, primary, 0.22f),
+        cardEnd = ColorUtils.blendARGB(surface, primary, 0.05f),
+        cardGlow = ColorUtils.setAlphaComponent(primary, 0x40),
+        cardStroke = ColorUtils.setAlphaComponent(scheme.onSurface.toArgb(), 0x24),
         prayerName = scheme.onSurface.toArgb(),
         status = scheme.onSurfaceVariant.toArgb(),
         label = scheme.onSurfaceVariant.toArgb(),
-        // The prayer's name and the countdown are the two things a glance needs, so they carry the
-        // scheme's strongest content colours: `onSurface` for the name, `primary` for the number the
-        // widget exists to show — the accent follows the wallpaper instead of a fixed gold.
-        // Everything supporting them steps back to `onSurfaceVariant`.
-        countdown = scheme.primary.toArgb(),
+        // The number the widget exists to show carries the accent.
+        countdown = primary,
         boundary = scheme.onSurfaceVariant.toArgb(),
     )
 }
