@@ -90,8 +90,13 @@ class PrayerWidgetUpdater(
 
     private suspend fun renderLocked() {
         val manager = widgetManager
-        val ids = manager?.getAppWidgetIds(providerComponent).orEmpty()
-        if (manager == null || ids.isEmpty()) {
+        if (manager == null) {
+            scheduler.cancel()
+            return
+        }
+        val ids = manager.getAppWidgetIds(providerComponent)
+        if (ids.isEmpty()) {
+            // No widget is placed any more, so there is nothing to draw and nobody to wake for it.
             scheduler.cancel()
             return
         }
