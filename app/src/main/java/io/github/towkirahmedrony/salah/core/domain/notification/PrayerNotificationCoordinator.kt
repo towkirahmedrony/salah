@@ -103,6 +103,18 @@ class PrayerNotificationCoordinator(
      * Ramadan reminders with it on the very next reconciliation.
      */
     private val ramadanCalendar: RamadanCalendar = RamadanCalendar(),
+    /**
+     * Called after every reconciliation attempt, whatever its outcome.
+     *
+     * Salah's home-screen widget is a reader of the same location, the same calculation settings and
+     * the same prayer timetable this coordinator re-plans, so it must be re-rendered whenever they
+     * change. Rather than have the widget watch those stores itself — a second consumer of the same
+     * signals, which could drift from the app while the app is open — the reconciliation is the one
+     * place that announces "the world changed".
+     *
+     * Defaulted to a no-op so every existing construction, and every test, stays valid.
+     */
+    private val onReconciled: suspend () -> Unit = {},
 ) {
 
     /** Serialises [reconcile] calls. See the class documentation for why this is required. */
@@ -115,8 +127,22 @@ class PrayerNotificationCoordinator(
      * Calls are serialised: a reconciliation that starts while another is running waits for it,
      * rather than interleaving cancels and schedules against the same slots.
      */
-    suspend fun reconcile(reason: ReconcileReason): ReconcileOutcome =
-        reconcileMutex.withLock { reconcileLocked(reason) }
+    suspend fun reconcile(reason: ReconcileReason): ReconcileOutcome {
+        val outcome = reconcileMutex.withLock { reconcileLocked(reason) }
+
+        // Outside the mutex on purpose: a widget render must not hold the lock the reminder plan is
+        // serialised on, and a slow render must not make the next reconciliation wait.
+        try {
+            onReconciled()
+        } catch (cancellation: CancellationException) {
+            throw cancellation
+        } catch (_: Exception) {
+            // Deliberately not escalated. The reconciliation itself succeeded, and a home-screen
+            // widget that cannot be redrawn is not a reason to report one that can as failed.
+        }
+
+        return outcome
+    }
 
     /** The body of [reconcile]; only ever entered while [reconcileMutex] is held. */
     private suspend fun reconcileLocked(reason: ReconcileReason): ReconcileOutcome {

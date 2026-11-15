@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  হোম স্ক্রিন উইজেটের লেখা।
+
+  `widget_status_active` ("ওয়াক্ত চলছে") এবং `widget_remaining_label` ("আর বাকি") ইচ্ছাকৃতভাবে
+  ছোট: এগুলো সরাসরি চলমান কাউন্টডাউনের উপরে বসে, তাই এখানে পূর্ণ বাক্য বসালে যে সংখ্যাটি দেখানোর
+  জন্য উইজেটটি আছে সেটিই চাপা পড়ে যায়।
+
+  `widget_preview_countdown` অনুবাদযোগ্য নয় — এটি শুধু উইজেট পিকার প্রিভিউতে দেখানো একটি
+  নমুনা সংখ্যা, প্রথম আপডেটেই বাস্তব সময় দিয়ে প্রতিস্থাপিত হয়।
+-->
+<resources>
+
+    <string name="widget_label">সালাহ — নামাজের সময়</string>
+    <string name="widget_description">চলমান ওয়াক্ত এবং তাতে আর কত সময় বাকি আছে।</string>
+
+    <string name="widget_status_active">ওয়াক্ত চলছে</string>
+    <string name="widget_status_upcoming">পরবর্তী নামাজ</string>
+
+    <string name="widget_remaining_label">আর বাকি</string>
+    <string name="widget_starts_in_label">শুরু হতে বাকি</string>
+
+    <string name="widget_boundary_prayer">%1$s %2$s-এ</string>
+    <string name="widget_boundary_prayer_next_day">আগামীকাল %1$s %2$s-এ</string>
+    <string name="widget_boundary_event">%1$s %2$s-এ</string>
+
+    <string name="widget_no_location_title">লোকেশন দরকার</string>
+    <string name="widget_no_location_body">নামাজের সময় দেখতে সালাহ খুলে লোকেশন বেছে নিন।</string>
+    <string name="widget_unavailable_title">নামাজের সময় পাওয়া যাচ্ছে না</string>
+    <string name="widget_unavailable_body">সময়সূচি আবার হিসাব করতে সালাহ খুলুন।</string>
+</resources>

@@ -1,10 +1,13 @@
 package io.github.towkirahmedrony.salah
 
+import android.content.Intent
 import android.os.Bundle
 import android.view.Choreographer
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.lifecycleScope
 import io.github.towkirahmedrony.salah.core.domain.dataset.sync.DatasetSyncTrigger
 import io.github.towkirahmedrony.salah.core.domain.dataset.sync.DatasetSynchronizer
@@ -13,6 +16,7 @@ import io.github.towkirahmedrony.salah.core.domain.prayerconfig.sync.PrayerConfi
 import io.github.towkirahmedrony.salah.core.domain.prayerconfig.sync.PrayerConfigSynchronizer
 import io.github.towkirahmedrony.salah.feature.app.AppViewModel
 import io.github.towkirahmedrony.salah.navigation.SalahApp
+import io.github.towkirahmedrony.salah.navigation.SalahDestination
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
@@ -24,12 +28,35 @@ class MainActivity : ComponentActivity() {
 
     private val appViewModel: AppViewModel by viewModel()
 
+    /**
+     * The destination a home-screen widget asked Salah to open, or `null` for an ordinary launch.
+     *
+     * Held as state rather than read from the intent inside composition so that a tap arriving while
+     * Salah is already open — delivered through [onNewIntent] — moves the screen too, and not only a
+     * cold start.
+     */
+    private val widgetDestination = mutableStateOf<String?>(null)
+
+    /**
+     * How many widget navigations have been requested, `onCreate` included.
+     *
+     * The route alone is not enough to act on a second tap: [mutableStateOf] only notifies its
+     * readers when the value *changes*, so tapping the widget again while Salah is already open on
+     * the timetable would otherwise be a no-op, and tapping it from another screen would leave the
+     * user there. The counter makes every tap a distinct request, whichever screen is showing.
+     */
+    private val widgetNavigationCount = mutableIntStateOf(0)
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        applyWidgetIntent(intent)
         StartupTrace.mark("activity_onCreate")
         enableEdgeToEdge()
         setContent {
-            SalahApp()
+            SalahApp(
+                requestedDestination = widgetDestination.value,
+                requestedDestinationCount = widgetNavigationCount.intValue,
+            )
         }
         StartupTrace.mark("setContent_called")
 
@@ -83,5 +110,49 @@ class MainActivity : ComponentActivity() {
                 if (setup is LocationSetupState.Complete) "gate_complete" else "gate_requires_setup",
             )
         }
+    }
+
+    /**
+     * A second launch while Salah is already open.
+     *
+     * The widget's `PendingIntent` reuses this app's existing task, so a tap on the home screen while
+     * the app is in the background is delivered here rather than starting a second copy of the app.
+     * Without this the destination carried by the new intent would be dropped.
+     */
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        setIntent(intent)
+        applyWidgetIntent(intent)
+    }
+
+    /**
+     * Records the destination [intent] asks for, if any.
+     *
+     * An ordinary launch has no extra and leaves both values untouched, so the shell keeps showing
+     * whatever screen it was on rather than being sent back to Home.
+     */
+    private fun applyWidgetIntent(intent: Intent) {
+        val destination = intent.widgetDestination() ?: return
+        widgetDestination.value = destination
+        widgetNavigationCount.intValue++
+    }
+
+    /**
+     * The app destination a home-screen widget asked for, or `null`.
+     *
+     * Read through [SalahDestination.fromRoute] rather than used as a raw string. The extra is only
+     * ever set by Salah's own widget, but validating it against the declared destinations means a
+     * spoofed intent cannot navigate the app somewhere the graph does not declare.
+     */
+    private fun Intent.widgetDestination(): String? =
+        SalahDestination.fromRoute(getStringExtra(EXTRA_DESTINATION))?.route
+
+    companion object {
+        /**
+         * The extra a home-screen widget sets to open one of Salah's own destinations.
+         *
+         * The value is a route from [SalahDestination], never free text.
+         */
+        const val EXTRA_DESTINATION = "io.github.towkirahmedrony.salah.extra.DESTINATION"
     }
 }

@@ -9,4 +9,16 @@
       artwork's gradient (docs/artwork/salah_icon_background.svg), so the ivory and gold
       marks stay legible against the light window background. -->
     <color name="salah_splash_icon_background">#053428</color>
+
+    <!--
+      Home-screen widget defaults.
+
+      Every one of these is replaced at bind time by the colour the selected theme preset resolves
+      to (see `PrayerWidgetUpdater`); they exist so the widget's initial layout and its picker
+      preview render in the brand palette instead of black-on-transparent, and so a launcher that
+      never rebinds a freshly placed widget still shows something legible.
+    -->
+    <color name="prayer_widget_text_primary">#14241D</color>
+    <color name="prayer_widget_text_secondary">#5E6D66</color>
+    <color name="prayer_widget_accent">#C49A45</color>
 </resources>

@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  The compact home-screen widget: the prayer whose period is open (or the one that opens next),
+  what that means, and a live countdown.
+
+  **Why a FrameLayout with an ImageView under the content.** The card's rounded, bordered background
+  is a drawable, and the light and dark variants are chosen at bind time. `setImageViewResource` is a
+  first-class `RemoteViews` API, so the appearance is selected without any of the reflective calls
+  (`setBackgroundResource`, `setBackgroundColor`) that are not part of the contract every launcher
+  honours. Every other colour is a `setTextColor`.
+
+  Every text value is set at bind time by PrayerWidgetUpdater — a RemoteViews layout is inflated in
+  the launcher's process, so a @string/ reference here would be resolved with the launcher's
+  configuration rather than with the language the user chose inside Salah.
+
+  Only view types RemoteViews supports are used, and the gap before the countdown is a weighted
+  LinearLayout rather than a Space.
+-->
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/widget_root"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <ImageView
+        android:id="@+id/widget_background"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:contentDescription="@null"
+        android:importantForAccessibility="no"
+        android:scaleType="fitXY"
+        android:src="@drawable/prayer_widget_background_light" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:importantForAccessibility="noHideDescendants"
+        android:orientation="vertical"
+        android:padding="12dp">
+
+        <ImageView
+            android:id="@+id/widget_accent"
+            android:layout_width="20dp"
+            android:layout_height="3dp"
+            android:contentDescription="@null"
+            android:importantForAccessibility="no"
+            android:src="@drawable/prayer_widget_accent_bar" />
+
+        <TextView
+            android:id="@+id/widget_prayer_name"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="6dp"
+            android:ellipsize="end"
+            android:fontFamily="sans-serif-medium"
+            android:maxLines="1"
+            android:textColor="@color/prayer_widget_text_primary"
+            android:textSize="20sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/widget_status"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="1dp"
+            android:ellipsize="end"
+            android:maxLines="2"
+            android:textColor="@color/prayer_widget_text_secondary"
+            android:textSize="10sp" />
+
+        <!--
+          Anchored to the bottom edge, so the countdown stays where the eye expects it however long
+          the prayer's name and the state line turn out to be.
+        -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:gravity="bottom"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/widget_remaining_label"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:ellipsize="end"
+                android:letterSpacing="0.06"
+                android:maxLines="1"
+                android:textColor="@color/prayer_widget_text_secondary"
+                android:textSize="9sp" />
+
+            <!--
+              The countdown is a Chronometer, not a value this app redraws: the platform advances it
+              in the launcher, so a once-a-second timer never wakes Salah. PrayerWidgetUpdater hands
+              it the instant the period ends and enables count-down mode.
+            -->
+            <Chronometer
+                android:id="@+id/widget_countdown"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="1dp"
+                android:fontFamily="sans-serif-medium"
+                android:maxLines="1"
+                android:textColor="@color/prayer_widget_text_primary"
+                android:textSize="21sp"
+                android:textStyle="bold" />
+        </LinearLayout>
+    </LinearLayout>
+</FrameLayout>

@@ -105,6 +105,9 @@ import io.github.towkirahmedrony.salah.data.preferences.DataStoreUserPreferences
 import io.github.towkirahmedrony.salah.data.preferences.salahPreferencesDataStore
 import io.github.towkirahmedrony.salah.data.prayer.AdhanPrayerTimesProvider
 import io.github.towkirahmedrony.salah.data.prayer.ProviderBackedPrayerScheduleRepository
+import io.github.towkirahmedrony.salah.core.domain.widget.PrayerWidgetStateResolver
+import io.github.towkirahmedrony.salah.widget.PrayerWidgetRefreshScheduler
+import io.github.towkirahmedrony.salah.widget.PrayerWidgetUpdater
 import io.github.towkirahmedrony.salah.data.prayerconfig.FilePrayerConfigStore
 import io.github.towkirahmedrony.salah.data.prayerconfig.remote.SupabaseRemotePrayerConfigSource
 import io.github.towkirahmedrony.salah.data.prayerconfig.sync.FilePrayerConfigSyncStateStore
@@ -604,6 +607,9 @@ val salahModules = module {
             // Which dates are in Ramadan, from the same converter the calendar screens use. Moving the
             // Hijri offset therefore moves the Sehri and Iftar reminders on the next reconciliation.
             ramadanCalendar = get(),
+            // The widget is re-rendered from the same signal that re-plans the reminders, so a
+            // location or calculation change reaches the home screen without it polling anything.
+            onReconciled = { get<PrayerWidgetUpdater>().refreshAll() },
         )
     }
 
@@ -632,6 +638,28 @@ val salahModules = module {
             // The Home Qibla card reads the same bearing calculator the Qibla screen does, so the two
             // can never disagree about the direction to the Kaaba.
             qiblaCalculator = get(),
+        )
+    }
+
+    // Home-screen widget ------------------------------------------------------
+    // The widget is a *reader* of the app's data, not a second copy of its logic: the stored location
+    // and prayer settings, the one prayer-time engine behind PrayerScheduleRepository, and the same
+    // domain resolver Home uses to identify the open period. Nothing on this path calculates a time,
+    // so the home screen and the app cannot disagree about when Fajr is.
+    //
+    // The palette and the strings are resolved per render from the appearance preferences, so a theme
+    // or language change reaches the widget on its next update without a second source of truth.
+    single { PrayerWidgetStateResolver(currentPrayerResolver = get()) }
+    single { PrayerWidgetRefreshScheduler(context = androidContext()) }
+    single {
+        PrayerWidgetUpdater(
+            context = androidContext(),
+            locations = get(),
+            preferences = get(),
+            schedules = get(),
+            resolver = get(),
+            scheduler = get(),
+            clock = get(),
         )
     }
 

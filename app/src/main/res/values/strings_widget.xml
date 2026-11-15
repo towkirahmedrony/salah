@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Home-screen widget strings.
+
+  In their own file, beside the app's other feature-scoped string files (`strings_zakat_*.xml`), so
+  the widget's copy can be read and reviewed without scrolling the app's main string table. Every
+  translatable value here has a Bangla counterpart in `values-bn/strings_widget.xml`.
+
+  The two countdown captions are short on purpose: they sit directly above a live `Chronometer`, and
+  a sentence there would compete with the number the widget exists to show.
+-->
+<resources>
+
+    <string name="widget_label">Salah — prayer time</string>
+    <string name="widget_description">The prayer time that is running now, and how long is left in it.</string>
+
+    <!-- The state line under the prayer's name. Short enough for a 2x2 widget. -->
+    <string name="widget_status_active">Time is running</string>
+    <string name="widget_status_upcoming">Next prayer</string>
+
+    <!-- Countdown captions. -->
+    <string name="widget_remaining_label">TIME LEFT</string>
+    <string name="widget_starts_in_label">STARTS IN</string>
+
+    <!-- The boundary the countdown is counting to, e.g. "Maghrib at 5:42 PM". -->
+    <string name="widget_boundary_prayer">%1$s at %2$s</string>
+    <string name="widget_boundary_prayer_next_day">%1$s at %2$s tomorrow</string>
+    <string name="widget_boundary_event">%1$s at %2$s</string>
+
+    <!-- States in which no time can be shown. Both say what to do rather than only what is missing. -->
+    <string name="widget_no_location_title">Location needed</string>
+    <string name="widget_no_location_body">Open Salah and choose a location to see prayer times.</string>
+    <string name="widget_unavailable_title">Prayer times unavailable</string>
+    <string name="widget_unavailable_body">Open Salah to recalculate the timetable.</string>
+
+    <!-- A representative countdown for the widget picker's preview, replaced on the first update. -->
+    <string name="widget_preview_countdown" translatable="false">1:24:35</string>
+</resources>

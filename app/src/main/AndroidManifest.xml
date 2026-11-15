@@ -141,6 +141,36 @@
                 <action android:name="android.intent.action.DATE_CHANGED" />
             </intent-filter>
         </receiver>
+        <!--
+          Salah's home-screen widget.
+
+          Exported because the *launcher* is another app: it must be able to send APPWIDGET_UPDATE and
+          bind a provider it finds in the picker, which is the documented contract for an app widget.
+          The only work it does is a re-render from Salah's own stored data, so being reachable cannot
+          let anything outside Salah change what the widget says.
+        -->
+        <receiver
+            android:name=".widget.PrayerWidgetProvider"
+            android:enabled="true"
+            android:exported="true"
+            android:label="@string/widget_label">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/prayer_widget_info" />
+        </receiver>
+
+        <!--
+          The single alarm that relabels the widget at the next prayer boundary, so the home screen
+          stays correct without the app being open. Reached only by Salah's own PendingIntent, which
+          names this class explicitly, so nothing else can trigger it.
+        -->
+        <receiver
+            android:name=".widget.PrayerWidgetRefreshReceiver"
+            android:enabled="true"
+            android:exported="false" />
     </application>
 
 </manifest>

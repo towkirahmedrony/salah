@@ -78,6 +78,21 @@ import org.koin.androidx.compose.koinViewModel
  */
 @Composable
 fun SalahApp(
+    /**
+     * A destination to open on top of Home, or `null` for an ordinary launch.
+     *
+     * Supplied by a home-screen widget tap (see `MainActivity`), as a route from [SalahDestination]
+     * that the caller has already validated. It is applied once the shell exists, so a tap while the
+     * location gate is still open lands on the timetable as soon as the gate lets the shell through.
+     */
+    requestedDestination: String? = null,
+    /**
+     * A counter that increases with every widget tap.
+     *
+     * Only its *change* matters: the same destination requested twice must still move the screen the
+     * second time, which a repeated equal route would not. `0` is an ordinary launch.
+     */
+    requestedDestinationCount: Int = 0,
     appViewModel: AppViewModel = koinViewModel(),
 ) {
     val themeMode by appViewModel.themeMode.collectAsStateWithLifecycle()
@@ -125,7 +140,11 @@ fun SalahApp(
     ProvideAppLanguageStrings(language = appLanguage) {
         SalahTheme(themeMode = themeMode, themePreset = themePreset, uiStyle = uiStyle) {
             when {
-                setupState is LocationSetupState.Complete -> AppShell()
+                setupState is LocationSetupState.Complete ->
+                    AppShell(
+                        requestedDestination = requestedDestination,
+                        requestedDestinationCount = requestedDestinationCount,
+                    )
 
                 setupState.requiresSetup -> Scaffold(
                     containerColor = MaterialTheme.colorScheme.background,
@@ -156,8 +175,21 @@ fun SalahApp(
 
 /** The navigation graph with the bottom bar, shown once a usable location exists. */
 @Composable
-private fun AppShell() {
+private fun AppShell(
+    requestedDestination: String?,
+    requestedDestinationCount: Int,
+) {
     val navController = rememberNavController()
+
+    // The widget's tap target. `null` is the ordinary launch and navigates nowhere, so the default
+    // start destination — Home — is untouched for every entry point that is not the widget. The
+    // counter is a key so a second, identical tap from another screen is acted on as well.
+    LaunchedEffect(requestedDestination, requestedDestinationCount) {
+        val route = requestedDestination ?: return@LaunchedEffect
+        if (navController.currentBackStackEntry?.destination?.route != route) {
+            navController.navigate(route) { launchSingleTop = true }
+        }
+    }
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
 

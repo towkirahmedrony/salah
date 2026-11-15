@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  The widget's card in the light appearance: Salah's own white card on the cream canvas, with the
+  same soft hairline the app's section cards use and a corner radius between the app's medium and
+  large shape roles.
+
+  A RemoteViews background has to be a static drawable — a shape's fill cannot be replaced at runtime
+  and a Drawable cannot be passed through RemoteViews — which is why this exists twice, once here
+  and once in `prayer_widget_background_dark`, rather than being derived from the theme like every
+  other widget colour.
+-->
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="rectangle">
+    <solid android:color="#FFFFFFFF" />
+    <corners android:radius="20dp" />
+    <stroke
+        android:width="1dp"
+        android:color="#E2E0D8" />
+</shape>
