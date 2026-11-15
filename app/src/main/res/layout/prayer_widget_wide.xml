@@ -2,14 +2,14 @@
 <!--
   The wide home-screen widget: the same reading as the compact layout in two columns.
 
-    - left:  the prayer's name (large, shrinks to fit), the state line and the boundary line
+    - left:  the prayer's name, the state line and the boundary line
     - right: the "TIME LEFT" caption above a large live countdown, aligned to the end
 
   Both columns are vertically centred as one band across the card. The name column takes the
-  remaining width (weight 1), so a long name shrinks instead of being cut off by the countdown.
+  remaining width (weight 1). Sizes are fixed (no auto-sizing, which clips in RemoteViews).
 
   Every other view id is shared with `prayer_widget_small`, so the updater addresses the same views
-  in both layouts. The card background works exactly as it does there — see that file.
+  in both layouts.
 -->
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+id/widget_root"
@@ -47,14 +47,11 @@
                 android:id="@+id/widget_prayer_name"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:autoSizeMaxTextSize="32sp"
-                android:autoSizeMinTextSize="18sp"
-                android:autoSizeStepGranularity="1sp"
-                android:autoSizeTextType="uniform"
                 android:ellipsize="end"
                 android:fontFamily="sans-serif-medium"
-                android:maxLines="1"
+                android:maxLines="2"
                 android:textColor="@color/prayer_widget_preview_text_primary"
+                android:textSize="28sp"
                 android:textStyle="bold" />
 
             <TextView
@@ -65,7 +62,7 @@
                 android:ellipsize="end"
                 android:maxLines="2"
                 android:textColor="@color/prayer_widget_preview_text_secondary"
-                android:textSize="13sp" />
+                android:textSize="14sp" />
 
             <TextView
                 android:id="@+id/widget_boundary"
@@ -73,9 +70,9 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="6dp"
                 android:ellipsize="end"
-                android:maxLines="1"
+                android:maxLines="2"
                 android:textColor="@color/prayer_widget_preview_text_secondary"
-                android:textSize="12sp" />
+                android:textSize="13sp" />
         </LinearLayout>
 
         <LinearLayout
@@ -93,7 +90,7 @@
                 android:letterSpacing="0.1"
                 android:maxLines="1"
                 android:textColor="@color/prayer_widget_preview_text_secondary"
-                android:textSize="10sp" />
+                android:textSize="11sp" />
 
             <Chronometer
                 android:id="@+id/widget_countdown"

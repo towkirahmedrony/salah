@@ -4,18 +4,17 @@
 
     name (large) → state → gap → "TIME LEFT" caption → live countdown → boundary line
 
-  There is no stretching spacer: the lines stay together as one block with fixed gaps, so a taller
-  cell only moves the block, it never pulls the lines apart. The name and the countdown shrink to
-  fit the width, so they are as large as the cell allows.
+  There is no stretching spacer: the lines stay together as one block with fixed gaps.
+
+  The name and the countdown sizes below are only defaults; PrayerWidgetUpdater sets the real
+  sizes from the widget's width (see PrayerWidgetSizing). Auto-sizing is not used because it clips
+  a wrap_content TextView inside RemoteViews.
 
   The caption and the boundary line are optional: PrayerWidgetUpdater hides them when the widget is
   not tall enough to hold them.
 
   The card itself is the ImageView underneath: a bitmap painted at bind time from the active theme
   (see PrayerWidgetCard); the drawable here is only the pre-bind default.
-
-  Every text value and colour is set at bind time by PrayerWidgetUpdater, because a RemoteViews
-  layout is inflated in the launcher's process and would resolve @string/ with the launcher's locale.
 -->
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+id/widget_root"
@@ -46,14 +45,11 @@
             android:id="@+id/widget_prayer_name"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:autoSizeMaxTextSize="34sp"
-            android:autoSizeMinTextSize="18sp"
-            android:autoSizeStepGranularity="1sp"
-            android:autoSizeTextType="uniform"
             android:ellipsize="end"
             android:fontFamily="sans-serif-medium"
             android:maxLines="2"
             android:textColor="@color/prayer_widget_preview_text_primary"
+            android:textSize="28sp"
             android:textStyle="bold" />
 
         <TextView
@@ -70,7 +66,7 @@
             android:id="@+id/widget_remaining_label"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
+            android:layout_marginTop="14dp"
             android:ellipsize="end"
             android:letterSpacing="0.1"
             android:maxLines="1"
@@ -82,15 +78,12 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="2dp"
-            android:autoSizeMaxTextSize="40sp"
-            android:autoSizeMinTextSize="20sp"
-            android:autoSizeStepGranularity="1sp"
-            android:autoSizeTextType="uniform"
             android:fontFamily="sans-serif-medium"
             android:fontFeatureSettings="tnum"
             android:letterSpacing="-0.02"
             android:maxLines="1"
             android:textColor="@color/prayer_widget_preview_text_accent"
+            android:textSize="30sp"
             android:textStyle="bold" />
 
         <TextView

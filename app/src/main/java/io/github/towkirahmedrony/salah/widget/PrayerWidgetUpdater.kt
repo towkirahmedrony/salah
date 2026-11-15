@@ -191,6 +191,8 @@ class PrayerWidgetUpdater(
         views.setTextColor(R.id.widget_status, palette.status)
 
         views.setTextColor(R.id.widget_countdown, palette.countdown)
+        if (!wide) views.applyCompactTextSizes(size.widthDp)
+        if (!wide) views.applyCompactTextSizes(size.widthDp)
 
         // The caption and the boundary line are optional: a compact cell keeps just the name, the
         // state and the countdown so nothing is clipped, a taller cell adds the caption, and a
