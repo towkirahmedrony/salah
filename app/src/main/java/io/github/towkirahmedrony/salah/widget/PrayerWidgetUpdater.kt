@@ -115,7 +115,10 @@ class PrayerWidgetUpdater(
                 location = null,
             )
             render(manager, ids, presentation, appearance)
-            scheduleRecovery()
+            // Nothing to retry: a location is a choice only the user can make, and the app's own
+            // launch and settings reconciliation re-render the widget the moment one exists. An
+            // alarm here would wake the device for a value that cannot change on its own.
+            scheduler.cancel()
             return
         }
 
@@ -259,11 +262,12 @@ class PrayerWidgetUpdater(
     }
 
     /**
-     * A one-hour retry while the widget has nothing to show.
+     * A coarse retry while the timetable itself is unavailable.
      *
-     * Deliberately coarse and deliberately only in the unavailable state: the common cause is that
-     * the user has not finished the location gate, and an alarm replaces it with a precise boundary
-     * refresh the moment a timetable exists again.
+     * Four times a day, not hourly: the state is reached only when a schedule cannot be produced at
+     * all (an impossible latitude, a failed calculation), which cannot change minute to minute. The
+     * app's own launch and settings reconciliation is what normally clears it, and the next
+     * successful render replaces this with a precise prayer-boundary alarm.
      */
     private fun scheduleRecovery() {
         scheduler.scheduleAt(Instant.now(clock).plus(RECOVERY_INTERVAL))
@@ -433,6 +437,6 @@ class PrayerWidgetUpdater(
 
         const val BOUNDARY_SLACK_SECONDS = 2L
 
-        val RECOVERY_INTERVAL: Duration = Duration.ofHours(1)
+        val RECOVERY_INTERVAL: Duration = Duration.ofHours(6)
     }
 }
