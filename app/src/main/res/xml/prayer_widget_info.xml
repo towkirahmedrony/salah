@@ -2,11 +2,15 @@
 <!--
   Salah's home-screen widget.
 
-  `updatePeriodMillis` is 0 on purpose. A periodic update would wake the device every thirty minutes
-  to redraw a value the platform's Chronometer is already animating, and the labels only change at a
-  prayer boundary — at most a few times a day. Those boundaries are covered by the single alarm
-  `PrayerWidgetRefreshScheduler` registers, and every lifecycle event that matters (added, resized,
-  removed, boot, app update) is delivered to the provider by the system.
+  The precise update is the single alarm `PrayerWidgetRefreshScheduler` registers for the next
+  prayer boundary, and every lifecycle event that matters (added, resized, removed, boot, app
+  update) is delivered to the provider by the system.
+
+  `updatePeriodMillis` is a 30-minute safety net, the platform minimum. The boundary alarm can be
+  delayed or dropped (no exact-alarm permission, aggressive vendor battery management), and the
+  Chronometer keeps counting *below zero* when nothing redraws it. The system's own periodic update
+  is independent of Salah's alarm, so a missed boundary is repaired within half an hour instead of
+  staying wrong until the app is opened.
 
   The declared height is as tall as the compact card needs for its name, state line and countdown
   with comfortable padding. A taller cell adds the caption and the boundary line.
@@ -25,5 +29,5 @@
     android:resizeMode="horizontal|vertical"
     android:targetCellHeight="2"
     android:targetCellWidth="2"
-    android:updatePeriodMillis="0"
+    android:updatePeriodMillis="1800000"
     android:widgetCategory="home_screen" />
